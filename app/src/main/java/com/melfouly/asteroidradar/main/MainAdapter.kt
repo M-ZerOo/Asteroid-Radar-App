@@ -28,7 +28,7 @@ class MainAdapter(private val clickListener: AsteroidListener) :
 
     override fun onBindViewHolder(holder: MainViewHolder, position: Int) {
         val asteroidItem = getItem(position)
-        holder.bind(asteroidItem,clickListener)
+        holder.bind(asteroidItem, clickListener)
     }
 
     class DiffCallback() : DiffUtil.ItemCallback<Asteroid>() {

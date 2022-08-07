@@ -1,11 +1,10 @@
 package com.melfouly.asteroidradar.network
 
-import com.melfouly.asteroidradar.model.Asteroid
 import com.melfouly.asteroidradar.Constants
+import com.melfouly.asteroidradar.model.Asteroid
 import org.json.JSONObject
 import java.text.SimpleDateFormat
 import java.util.*
-import kotlin.collections.ArrayList
 
 fun parseAsteroidsJsonResult(jsonResult: JSONObject): ArrayList<Asteroid> {
     val nearEarthObjectsJson = jsonResult.getJSONObject("near_earth_objects")
@@ -34,8 +33,10 @@ fun parseAsteroidsJsonResult(jsonResult: JSONObject): ArrayList<Asteroid> {
                 val isPotentiallyHazardous = asteroidJson
                     .getBoolean("is_potentially_hazardous_asteroid")
 
-                val asteroid = Asteroid(id, codename, formattedDate, absoluteMagnitude,
-                    estimatedDiameter, relativeVelocity, distanceFromEarth, isPotentiallyHazardous)
+                val asteroid = Asteroid(
+                    id, codename, formattedDate, absoluteMagnitude,
+                    estimatedDiameter, relativeVelocity, distanceFromEarth, isPotentiallyHazardous
+                )
                 asteroidList.add(asteroid)
             }
         }

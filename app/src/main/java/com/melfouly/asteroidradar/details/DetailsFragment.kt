@@ -1,14 +1,13 @@
 package com.melfouly.asteroidradar.details
 
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AlertDialog
+import androidx.fragment.app.Fragment
 import com.melfouly.asteroidradar.R
 import com.melfouly.asteroidradar.databinding.FragmentDetailsBinding
-
 
 class DetailsFragment : Fragment() {
 

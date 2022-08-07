@@ -53,7 +53,7 @@ fun bindTextViewToDisplayVelocity(textView: TextView, number: Double) {
     textView.text = String.format(context.getString(R.string.km_s_unit_format), number)
 }
 
-// Binding Adapter to get the picture of the day and handle or other cases.
+// Binding Adapter to get the picture of the day and handle other cases.
 @BindingAdapter("pictureOfDay")
 fun bindImageViewToDisplayPictureOfDay(imageView: ImageView, pictureOfDay: PictureOfDay?) {
     val context = imageView.context

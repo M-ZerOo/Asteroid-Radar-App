@@ -2,11 +2,9 @@ package com.melfouly.asteroidradar.repository
 
 import android.util.Log
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations
 import com.melfouly.asteroidradar.Constants.TAG
 import com.melfouly.asteroidradar.database.AsteroidDatabase
-import com.melfouly.asteroidradar.database.AsteroidEntity
 import com.melfouly.asteroidradar.database.asDatabaseModel
 import com.melfouly.asteroidradar.database.asDomainModel
 import com.melfouly.asteroidradar.model.Asteroid
@@ -17,20 +15,26 @@ import org.json.JSONObject
 
 class AsteroidRepository(private val database: AsteroidDatabase) {
 
-    // Call from database and set the data to domain model
+    // Call all asteroids from database and set the data as domain model
     val asteroids: LiveData<List<Asteroid>> =
         Transformations.map(
             database.asteroidDao().getAsteroidsOfToday(today(), sevenDaysAfter())
         ) { it.asDomainModel() }
 
+    // Call picture of day from database and  set the data as domain model
+    val pictureOfDay: LiveData<PictureOfDay> =
+        Transformations.map(
+            database.pictureOfDayDao().getPictureOfDay()
+        ) { it?.asDomainModel() }
+
+    // Call today only asteroids from database and set the data as domain model
     val todayOnlyAsteroids: LiveData<List<Asteroid>> =
         Transformations.map(
             database.asteroidDao().getAsteroidsOfToday(today(), today())
         ) { it.asDomainModel() }
 
 
-
-    // Refresh Asteroids saved in offline cache
+    // Call the asteroids from network then delete previous days and insert the data to database
     suspend fun refreshAsteroids(startDate: String = today(), endDate: String = sevenDaysAfter()) {
         var asteroidList: ArrayList<Asteroid>
 
@@ -40,6 +44,7 @@ class AsteroidRepository(private val database: AsteroidDatabase) {
                     Network.asteroid.getAllAsteroidsAsync(startDate, endDate)
                 val jsonObject = JSONObject(response)
                 asteroidList = parseAsteroidsJsonResult(jsonObject)
+                database.asteroidDao().deletePreviousDay(today())
                 database.asteroidDao().insertAll(*asteroidList.asDatabaseModel())
             } catch (e: Exception) {
                 Log.d(TAG, "Error: ${e.localizedMessage}")
@@ -47,26 +52,17 @@ class AsteroidRepository(private val database: AsteroidDatabase) {
         }
     }
 
-    // Get picture of day from network and check if it's photo or video
-    suspend fun getPictureOfDay(): PictureOfDay? {
-        var pictureOfDay: PictureOfDay
+    // Get picture of day from network and check if it's photo or video and save the image to database
+    suspend fun refreshPictureOfDay() {
         withContext(Dispatchers.IO) {
-            pictureOfDay = Network.asteroid.getPictureOfDayAsync().await()
-        }
-        if (pictureOfDay.mediaType == "image") {
-            return pictureOfDay
-        }
-        return null
-    }
-
-    suspend fun getSavedAsteroids() {
-        var asteroids: LiveData<List<AsteroidEntity>>
-        withContext(Dispatchers.IO) { try {
-            asteroids = database.asteroidDao().getAll()
-            Log.d(TAG, "Lol: ${asteroids.value?.size}")
-        } catch (e: Exception) {
-            Log.d(TAG, "Error is : ${e.localizedMessage}")
-        }
+            try {
+                val pictureOfDay = Network.asteroid.getPictureOfDayAsync().await()
+                if (pictureOfDay.mediaType == "image") {
+                    database.pictureOfDayDao().insertImage(pictureOfDay.asDatabaseModel())
+                } else return@withContext
+            } catch (e: Exception) {
+                Log.d(TAG, "Error: ${e.localizedMessage}")
+            }
         }
     }
 
